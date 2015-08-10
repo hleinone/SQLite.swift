@@ -74,7 +74,7 @@ class SchemaTests: SQLiteTestCase {
     }
 
     func test_createTable_column_withCheck_buildsCheckClause() {
-        db.create(table: users) { $0.column(admin, check: contains([false, true], admin)) }
+        db.create(table: users) { $0.column(admin, check: contains([false, true], column: admin)) }
 
         AssertSQL("CREATE TABLE \"users\" (\"admin\" INTEGER NOT NULL CHECK ((\"admin\" IN (0, 1))))")
     }
@@ -97,9 +97,7 @@ class SchemaTests: SQLiteTestCase {
             t.column(manager_id, references: users[id])
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER PRIMARY KEY NOT NULL, " +
-            "\"manager_id\" INTEGER REFERENCES \"users\"(\"id\"))")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER PRIMARY KEY NOT NULL, \"manager_id\" INTEGER REFERENCES \"users\"(\"id\"))")
     }
 
     func test_createTable_intColumn_referencingQuery_buildsReferencesClause() {
@@ -108,9 +106,7 @@ class SchemaTests: SQLiteTestCase {
             t.column(manager_id, references: users)
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER PRIMARY KEY NOT NULL, " +
-            "\"manager_id\" INTEGER REFERENCES \"users\")")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER PRIMARY KEY NOT NULL, \"manager_id\" INTEGER REFERENCES \"users\")")
     }
 
     func test_createTable_primaryKey_buildsPrimaryKeyTableConstraint() {
@@ -129,8 +125,7 @@ class SchemaTests: SQLiteTestCase {
             t.primaryKey(id, email)
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER NOT NULL, \"email\" TEXT NOT NULL, PRIMARY KEY(\"id\", \"email\"))")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER NOT NULL, \"email\" TEXT NOT NULL, PRIMARY KEY(\"id\", \"email\"))")
     }
 
     func test_createTable_unique_buildsUniqueTableConstraint() {
@@ -149,14 +144,13 @@ class SchemaTests: SQLiteTestCase {
             t.unique(id, email)
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER NOT NULL, \"email\" TEXT NOT NULL, UNIQUE(\"id\", \"email\"))")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER NOT NULL, \"email\" TEXT NOT NULL, UNIQUE(\"id\", \"email\"))")
     }
 
     func test_createTable_check_buildsCheckTableConstraint() {
         db.create(table: users) { t in
             t.column(admin)
-            t.check(contains([false, true], admin))
+            t.check(contains([false, true], column: admin))
         }
 
         AssertSQL("CREATE TABLE \"users\" (\"admin\" INTEGER NOT NULL, CHECK ((\"admin\" IN (0, 1))))")
@@ -169,10 +163,7 @@ class SchemaTests: SQLiteTestCase {
             t.foreignKey(manager_id, references: users[id])
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER PRIMARY KEY NOT NULL, " +
-            "\"manager_id\" INTEGER, " +
-            "FOREIGN KEY(\"manager_id\") REFERENCES \"users\"(\"id\"))")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER PRIMARY KEY NOT NULL, \"manager_id\" INTEGER, FOREIGN KEY(\"manager_id\") REFERENCES \"users\"(\"id\"))")
     }
 
     func test_createTable_foreignKey_withUpdateDependency_buildsUpdateDependency() {
@@ -182,10 +173,7 @@ class SchemaTests: SQLiteTestCase {
             t.foreignKey(manager_id, references: users[id], update: .Cascade)
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER PRIMARY KEY NOT NULL, " +
-            "\"manager_id\" INTEGER, " +
-            "FOREIGN KEY(\"manager_id\") REFERENCES \"users\"(\"id\") ON UPDATE CASCADE)")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER PRIMARY KEY NOT NULL, \"manager_id\" INTEGER, FOREIGN KEY(\"manager_id\") REFERENCES \"users\"(\"id\") ON UPDATE CASCADE)")
     }
 
     func test_create_foreignKey_withDeleteDependency_buildsDeleteDependency() {
@@ -195,10 +183,7 @@ class SchemaTests: SQLiteTestCase {
             t.foreignKey(manager_id, references: users[id], delete: .Cascade)
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER PRIMARY KEY NOT NULL, " +
-            "\"manager_id\" INTEGER, " +
-            "FOREIGN KEY(\"manager_id\") REFERENCES \"users\"(\"id\") ON DELETE CASCADE)")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER PRIMARY KEY NOT NULL, \"manager_id\" INTEGER, FOREIGN KEY(\"manager_id\") REFERENCES \"users\"(\"id\") ON DELETE CASCADE)")
     }
 
     func test_createTable_foreignKey_withCompositeKey_buildsForeignKeyTableConstraint() {
@@ -211,11 +196,7 @@ class SchemaTests: SQLiteTestCase {
             t.foreignKey((manager_id, email), references: (users[id], email))
         }
 
-        AssertSQL("CREATE TABLE \"users\" (" +
-            "\"id\" INTEGER PRIMARY KEY NOT NULL, " +
-            "\"manager_id\" INTEGER NOT NULL, " +
-            "\"email\" TEXT NOT NULL, " +
-            "FOREIGN KEY(\"manager_id\", \"email\") REFERENCES \"users\"(\"id\", \"email\"))")
+        AssertSQL("CREATE TABLE \"users\" (\"id\" INTEGER PRIMARY KEY NOT NULL, \"manager_id\" INTEGER NOT NULL, \"email\" TEXT NOT NULL, FOREIGN KEY(\"manager_id\", \"email\") REFERENCES \"users\"(\"id\", \"email\"))")
     }
 
     func test_createTable_withQuery_createsTableWithQuery() {

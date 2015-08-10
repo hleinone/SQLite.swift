@@ -321,7 +321,7 @@ class DatabaseTests: SQLiteTestCase {
     func test_updateHook_setsUpdateHook() {
         async { done in
             db.updateHook { operation, db, table, rowid in
-                XCTAssertEqual(.Insert, operation)
+                XCTAssertEqual(Database.Operation.Insert, operation)
                 XCTAssertEqual("main", db)
                 XCTAssertEqual("users", table)
                 XCTAssertEqual(1, rowid)

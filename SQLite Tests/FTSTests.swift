@@ -23,13 +23,13 @@ class FTSTests: SQLiteTestCase {
     func test_match_withColumnExpression_buildsMatchExpressionWithColumnIdentifier() {
         db.create(vtable: emails, using: fts4(subject, body))
 
-        AssertSQL("SELECT * FROM \"emails\" WHERE (\"subject\" MATCH 'hello')", emails.filter(match("hello", subject)))
+        AssertSQL("SELECT * FROM \"emails\" WHERE (\"subject\" MATCH 'hello')", emails.filter(match("hello", expression: subject)))
     }
 
     func test_match_withQuery_buildsMatchExpressionWithTableIdentifier() {
         db.create(vtable: emails, using: fts4(subject, body))
 
-        AssertSQL("SELECT * FROM \"emails\" WHERE (\"emails\" MATCH 'hello')", emails.filter(match("hello", emails)))
+        AssertSQL("SELECT * FROM \"emails\" WHERE (\"emails\" MATCH 'hello')", emails.filter(match("hello", expression: emails)))
     }
 
     func test_registerTokenizer_registersTokenizer() {
@@ -45,7 +45,7 @@ class FTSTests: SQLiteTestCase {
             let input = CFStringCreateWithSubstring(kCFAllocatorDefault, string, range)
             var token = CFStringCreateMutableCopy(nil, range.length, input)
             CFStringLowercase(token, locale)
-            CFStringTransform(token, nil, kCFStringTransformStripDiacritics, 0)
+            CFStringTransform(token, UnsafeMutablePointer<CFRange>(), kCFStringTransformStripDiacritics, false)
             return (token as String, string.rangeOfString(input as String)!)
         }
 
@@ -55,7 +55,7 @@ class FTSTests: SQLiteTestCase {
 
         emails.insert(subject <- "Aún más cáfe!")
 
-        XCTAssertEqual(1, emails.filter(match("aun", emails)).count)
+        XCTAssertEqual(1, emails.filter(match("aun", expression: emails)).count)
     }
 
 }

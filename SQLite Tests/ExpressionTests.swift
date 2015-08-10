@@ -282,29 +282,29 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_likeOperator_withStringExpression_buildsLikeExpression() {
-        AssertSQLContains("('A' LIKE 'B%')", like("B%", stringA))
-        AssertSQLContains("('B' LIKE 'A%')", like("A%", stringB))
+        AssertSQLContains("('A' LIKE 'B%')", like("B%", expression: stringA))
+        AssertSQLContains("('B' LIKE 'A%')", like("A%", expression: stringB))
     }
 
     func test_globOperator_withStringExpression_buildsGlobExpression() {
-        AssertSQLContains("('A' GLOB 'B*')", glob("B*", stringA))
-        AssertSQLContains("('B' GLOB 'A*')", glob("A*", stringB))
+        AssertSQLContains("('A' GLOB 'B*')", glob("B*", expression: stringA))
+        AssertSQLContains("('B' GLOB 'A*')", glob("A*", expression: stringB))
     }
 
     func test_matchOperator_withStringExpression_buildsMatchExpression() {
-        AssertSQLContains("('A' MATCH 'B')", match("B", stringA))
-        AssertSQLContains("('B' MATCH 'A')", match("A", stringB))
+        AssertSQLContains("('A' MATCH 'B')", match("B", expression: stringA))
+        AssertSQLContains("('B' MATCH 'A')", match("A", expression: stringB))
     }
 
     func test_collateOperator_withStringExpression_buildsCollationExpression() {
-        AssertSQLContains("('A' COLLATE \"BINARY\")", collate(.Binary, stringA))
-        AssertSQLContains("('B' COLLATE \"NOCASE\")", collate(.Nocase, stringB))
-        AssertSQLContains("('A' COLLATE \"RTRIM\")", collate(.Rtrim, stringA))
+        AssertSQLContains("('A' COLLATE \"BINARY\")", collate(.Binary, expression: stringA))
+        AssertSQLContains("('B' COLLATE \"NOCASE\")", collate(.Nocase, expression: stringB))
+        AssertSQLContains("('A' COLLATE \"RTRIM\")", collate(.Rtrim, expression: stringA))
 
         db.create(collation: "NODIACRITIC") { lhs, rhs in
             return lhs.compare(rhs, options: .DiacriticInsensitiveSearch)
         }
-        AssertSQLContains("('A' COLLATE \"NODIACRITIC\")", collate(.Custom("NODIACRITIC"), stringA))
+        AssertSQLContains("('A' COLLATE \"NODIACRITIC\")", collate(.Custom("NODIACRITIC"), expression: stringA))
     }
 
     func test_cast_buildsCastingExpressions() {
@@ -366,11 +366,11 @@ class ExpressionTests: SQLiteTestCase {
         let int2 = Expression<Int?>(value: 2)
         let int3 = Expression<Int>(value: 3)
 
-        AssertSQLContains("ifnull(NULL, 1)", ifnull(int1, 1))
+        AssertSQLContains("ifnull(NULL, 1)", ifnull(int1, defaultValue: 1))
         AssertSQLContains("ifnull(NULL, 1)", int1 ?? 1)
-        AssertSQLContains("ifnull(NULL, 2)", ifnull(int1, int2))
+        AssertSQLContains("ifnull(NULL, 2)", ifnull(int1, defaultValue: int2))
         AssertSQLContains("ifnull(NULL, 2)", int1 ?? int2)
-        AssertSQLContains("ifnull(NULL, 3)", ifnull(int1, int3))
+        AssertSQLContains("ifnull(NULL, 3)", ifnull(int1, defaultValue: int3))
         AssertSQLContains("ifnull(NULL, 3)", int1 ?? int3)
     }
 
@@ -390,8 +390,8 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_ltrimFunction_withStringExpressionAndReplacementCharacters_buildsTrimmedStringExpression() {
-        AssertSQLContains("ltrim('A', 'A?')", ltrim(stringA, "A?"))
-        AssertSQLContains("ltrim('B', 'B?')", ltrim(stringB, "B?"))
+        AssertSQLContains("ltrim('A', 'A?')", ltrim(stringA, characters: "A?"))
+        AssertSQLContains("ltrim('B', 'B?')", ltrim(stringB, characters: "B?"))
     }
 
     func test_randomFunction_buildsRandomIntExpression() {
@@ -399,8 +399,8 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_replaceFunction_withStringExpressionAndFindReplaceStrings_buildsReplacedStringExpression() {
-        AssertSQLContains("replace('A', 'A', 'B')", replace(stringA, "A", "B"))
-        AssertSQLContains("replace('B', 'B', 'A')", replace(stringB, "B", "A"))
+        AssertSQLContains("replace('A', 'A', 'B')", replace(stringA, match: "A", subtitute: "B"))
+        AssertSQLContains("replace('B', 'B', 'A')", replace(stringB, match: "B", subtitute: "A"))
     }
 
     func test_roundFunction_withDoubleExpression_buildsRoundedDoubleExpression() {
@@ -409,8 +409,8 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_roundFunction_withDoubleExpressionAndPrecision_buildsRoundedDoubleExpression() {
-        AssertSQLContains("round(1.5, 1)", round(double1, 1))
-        AssertSQLContains("round(2.5, 1)", round(double2, 1))
+        AssertSQLContains("round(1.5, 1)", round(double1, precision: 1))
+        AssertSQLContains("round(2.5, 1)", round(double2, precision: 1))
     }
 
     func test_rtrimFunction_withStringExpression_buildsTrimmedStringExpression() {
@@ -419,23 +419,23 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_rtrimFunction_withStringExpressionAndReplacementCharacters_buildsTrimmedStringExpression() {
-        AssertSQLContains("rtrim('A', 'A?')", rtrim(stringA, "A?"))
-        AssertSQLContains("rtrim('B', 'B?')", rtrim(stringB, "B?"))
+        AssertSQLContains("rtrim('A', 'A?')", rtrim(stringA, characters: "A?"))
+        AssertSQLContains("rtrim('B', 'B?')", rtrim(stringB, characters: "B?"))
     }
 
     func test_substrFunction_withStringExpressionAndStartIndex_buildsSubstringExpression() {
-        AssertSQLContains("substr('A', 1)", substr(stringA, 1))
-        AssertSQLContains("substr('B', 1)", substr(stringB, 1))
+        AssertSQLContains("substr('A', 1)", substr(stringA, startIndex: 1))
+        AssertSQLContains("substr('B', 1)", substr(stringB, startIndex: 1))
     }
 
     func test_substrFunction_withStringExpressionPositionAndLength_buildsSubstringExpression() {
-        AssertSQLContains("substr('A', 1, 2)", substr(stringA, 1, 2))
-        AssertSQLContains("substr('B', 1, 2)", substr(stringB, 1, 2))
+        AssertSQLContains("substr('A', 1, 2)", substr(stringA, position: 1, length: 2))
+        AssertSQLContains("substr('B', 1, 2)", substr(stringB, position: 1, length: 2))
     }
 
     func test_substrFunction_withStringExpressionAndRange_buildsSubstringExpression() {
-        AssertSQLContains("substr('A', 1, 2)", substr(stringA, 1..<3))
-        AssertSQLContains("substr('B', 1, 2)", substr(stringB, 1..<3))
+        AssertSQLContains("substr('A', 1, 2)", substr(stringA, subRange: 1..<3))
+        AssertSQLContains("substr('B', 1, 2)", substr(stringB, subRange: 1..<3))
     }
 
     func test_trimFunction_withStringExpression_buildsTrimmedStringExpression() {
@@ -444,8 +444,8 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_trimFunction_withStringExpressionAndReplacementCharacters_buildsTrimmedStringExpression() {
-        AssertSQLContains("trim('A', 'A?')", trim(stringA, "A?"))
-        AssertSQLContains("trim('B', 'B?')", trim(stringB, "B?"))
+        AssertSQLContains("trim('A', 'A?')", trim(stringA, characters: "A?"))
+        AssertSQLContains("trim('B', 'B?')", trim(stringB, characters: "B?"))
     }
 
     func test_upperFunction_withStringExpression_buildsLowerStringExpression() {
@@ -529,16 +529,16 @@ class ExpressionTests: SQLiteTestCase {
     }
 
     func test_containsFunction_withValueExpressionAndValueArray_buildsInExpression() {
-        AssertSQLContains("(\"id\" IN (1, 2, 3))", contains([1, 2, 3], id))
-        AssertSQLContains("(\"age\" IN (20, 30, 40))", contains([20, 30, 40], age))
+        AssertSQLContains("(\"id\" IN (1, 2, 3))", contains([1, 2, 3], column: id))
+        AssertSQLContains("(\"age\" IN (20, 30, 40))", contains([20, 30, 40], column: age))
 
-        AssertSQLContains("(\"id\" IN (1))", contains(Set([1]), id))
-        AssertSQLContains("(\"age\" IN (20))", contains(Set([20]), age))
+        AssertSQLContains("(\"id\" IN (1))", contains(Set([1]), column: id))
+        AssertSQLContains("(\"age\" IN (20))", contains(Set([20]), column: age))
     }
 
     func test_containsFunction_withValueExpressionAndQuery_buildsInExpression() {
         let query = users.select(max(age)).group(id)
-        AssertSQLContains("(\"id\" IN (SELECT max(\"age\") FROM \"users\" GROUP BY \"id\"))", contains(query, id))
+        AssertSQLContains("(\"id\" IN (SELECT max(\"age\") FROM \"users\" GROUP BY \"id\"))", contains(query, column: id))
     }
 
     func test_plusEquals_withStringExpression_buildsSetter() {
