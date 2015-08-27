@@ -709,7 +709,7 @@ public struct Row {
 
         if let idx = columnNames[column.SQL] { return valueAtIndex(idx) }
 
-        let similar = columnNames.keys.filter { $0.hasSuffix(".\(column.SQL)") }.array
+        let similar = Array(columnNames.keys.filter { $0.hasSuffix(".\(column.SQL)") })
         if similar.count == 1 { return valueAtIndex(columnNames[similar[0]]!) }
 
         if similar.count > 1 {
@@ -753,22 +753,25 @@ public struct QueryGenerator: GeneratorType {
     private let query: Query
     private let statement: Statement
 
-    private lazy var columnNames: [String: Int] = {
-        var (columnNames, idx) = ([String: Int](), 0)
+    private lazy var columnNames: [String: Int] = self._columnNames()
+    
+    private func _columnNames() -> [String: Int] {
+        var columnNames = [String: Int]()
+        var idx = 0
         column: for each in self.query.columns ?? [Expression<Void>(literal: "*")] {
             let pair = each.expression.SQL.characters.split { $0 == "." }.map { String($0) }
             let (tableName, column) = (pair.count > 1 ? pair.first : nil, pair.last!)
-
+            
             func expandGlob(namespace: Bool) -> Query -> Void {
                 return { table in
                     var query = Query(table.database, table.tableName.unaliased)
                     if let columns = table.columns { query.columns = columns  }
                     var names = query.selectStatement.columnNames.map { quote(identifier: $0) }
                     if namespace { names = names.map { "\(table.tableName.SQL).\($0)" } }
-                    for name in names { columnNames[name] = idx++ }
+                    for name in names { columnNames[name as String] = idx++ }
                 }
             }
-
+            
             if column == "*" {
                 let tables = [self.query.select(*)] + self.query.joins.map { $0.table }
                 if let tableName = tableName {
@@ -783,11 +786,11 @@ public struct QueryGenerator: GeneratorType {
                 tables.map(expandGlob(self.query.joins.count > 0))
                 continue
             }
-
-            columnNames[each.expression.SQL] = idx++
+            
+            columnNames[each.expression.SQL as String] = idx++
         }
-        return columnNames
-    }()
+        return columnNames as [String: Int]
+    }
 
     private init(_ query: Query) {
         (self.query, self.statement) = (query, query.selectStatement)

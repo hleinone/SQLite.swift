@@ -132,7 +132,7 @@ public extension Database {
     }
 
     private func indexName(table: String, on columns: [Expressible]) -> String {
-        let string = " ".join(["index", table, "on"] + columns.map { $0.expression.SQL })
+        let string = (["index", table, "on"] + columns.map { $0.expression.SQL }).joinWithSeparator(" ")
         return quote(identifier: string.characters.reduce("") { underscored, character in
             if character == "\"" { return underscored }
             if "A"..."Z" ~= character || "a"..."z" ~= character { return underscored + String(character) }
@@ -477,12 +477,12 @@ private func createSQL(
     parts.append(type)
     if ifNotExists { parts.append("IF NOT EXISTS") }
     parts.append(name)
-    return " ".join(parts)
+    return parts.joinWithSeparator(" ")
 }
 
 private func dropSQL(type: String, ifExists: Bool, name: String) -> String {
     var parts: [String] = ["DROP \(type)"]
     if ifExists { parts.append("IF EXISTS") }
     parts.append(name)
-    return " ".join(parts)
+    return parts.joinWithSeparator(" ")
 }

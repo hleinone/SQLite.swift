@@ -89,7 +89,7 @@ extension Blob: CustomStringConvertible {
 
     public var description: String {
         let buf = UnsafeBufferPointer(start: UnsafePointer<UInt8>(bytes), count: length)
-        let hex = "".join(buf.map { String(format: "%02x", $0) })
+        let hex = buf.map { String(format: "%02x", $0) }.joinWithSeparator("")
         return "x'\(hex)'"
     }
 

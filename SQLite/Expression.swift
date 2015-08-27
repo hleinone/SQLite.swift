@@ -95,9 +95,9 @@ public struct Expression<T> {
         for expressible in expressions {
             let expression = expressible.expression
             SQL.append(expression.SQL)
-            bindings.extend(expression.bindings)
+            bindings.appendContentsOf(expression.bindings)
         }
-        return Expression<Void>(literal: separator.join(SQL), bindings)
+        return Expression<Void>(literal: SQL.joinWithSeparator(separator), bindings)
     }
 
     internal init<V>(_ expression: Expression<V>) {
@@ -749,7 +749,7 @@ public func * (_: Expression<Binding>?, _: Expression<Binding>?) -> Expression<V
     return Expression(literal: "*")
 }
 public func contains<V: Value, C: CollectionType where C.Generator.Element == V, C.Index.Distance == Int>(values: C, column: Expression<V>) -> Expression<Bool> {
-    let templates = ", ".join([String](count: values.count, repeatedValue: "?"))
+    let templates = [String](count: values.count, repeatedValue: "?").joinWithSeparator(", ")
     return infix("IN", lhs: column, rhs: Expression<V>(literal: "(\(templates))", values.map { $0.datatypeValue }))
 }
 public func contains<V: Value, C: CollectionType where C.Generator.Element == V, C.Index.Distance == Int>(values: C, column: Expression<V?>) -> Expression<Bool> {

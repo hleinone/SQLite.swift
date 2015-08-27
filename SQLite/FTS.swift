@@ -81,7 +81,7 @@ extension Database {
                 if var (token, range) = next(string) {
                     let view = string.utf8
                     offset.memory += string.substringToIndex(range.startIndex).utf8.count
-                    length.memory = Int32(distance(range.startIndex.samePositionIn(view), range.endIndex.samePositionIn(view)))
+                    length.memory = Int32(range.startIndex.samePositionIn(view).distanceTo(range.endIndex.samePositionIn(view)))
                     return token
                 }
                 return nil
